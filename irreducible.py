@@ -145,7 +145,3 @@ def find_polys(start, end, n, gcd_polys: list):
                     irreducibles.append(T_x)
     
     return irreducibles
-
-
-if __name__ == '__main__':
-    main(32, [2])
