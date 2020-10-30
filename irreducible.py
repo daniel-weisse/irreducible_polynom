@@ -2,7 +2,7 @@
 Generate a list of irreducible polynoms over GF(2^n) by testing all possibles
 """
 from pyGF2 import gf2_mul, gf2_div, gf2_add
-from numpy import array, append, binary_repr, flip, uint8, pad, savetxt
+from numpy import array, append, binary_repr, flip, uint8, pad
 from datetime import datetime
 
 from multiprocessing import Pool, cpu_count
