@@ -1,5 +1,11 @@
 # irreducible_polynom
-Finds all irreducible polynomials of degree n in GF(2^n) via repeated squaring.
+This repository includes lists of irreducible polynomials over the Galois Field 2^n.
+
+The first line (n N) in the irreducible polynomial lists represent:
+
+n = the degree of the polynomials in that file
+
+N = the total number of polynomials in that file, number of lines - 1
 
 Polynomials are represented using their coefficients. The rightmost element represents the leading coefficient:
 
@@ -7,11 +13,8 @@ Polynomials are represented using their coefficients. The rightmost element repr
 
 ----
 
-The first line (n N) in the irreducible polynomial lists represent:
-
-n = the degree of the polynomials in that file
-
-N = the total number of polynomials in that file, number of lines - 1
+The lists were generated using the irreducible.py module, which finds all irreducible polynomials 
+of degree n in GF(2^n) via repeated squaring.
 
 ----
 
