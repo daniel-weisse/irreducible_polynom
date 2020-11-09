@@ -5,7 +5,7 @@ from pyGF2 import gf2_mul, gf2_div, gf2_add
 from numpy import array, append, binary_repr, flip, uint8, pad
 from datetime import datetime
 
-from multiprocessing import Pool, cpu_count
+from multiprocessing import Pool, cpu_count, current_process
 
 def time():
     """
@@ -106,6 +106,12 @@ def find_polys(start, end, n, gcd_polys: list):
     irreducibles = []
 
     for i in range(start, end):
+        if i == int(end * 1/4 + start):
+            print(f'{time()} {current_process().name} 25% done')
+        elif i == int(end * 2/4 + start):
+            print(f'{time()} {current_process().name} 50% done')
+        elif i == int(end * 3/4 + start):
+            print(f'{time()} {current_process().name} 75% done')
         s = array(list(binary_repr(i)), dtype=uint8)
         s = pad(
             array=s,
