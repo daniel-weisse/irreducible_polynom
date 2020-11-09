@@ -106,12 +106,12 @@ def find_polys(start, end, n, gcd_polys: list):
     irreducibles = []
 
     for i in range(start, end):
-        if i == int(end * 1/4) + start):
-            print(f'{time()} {current_process().name} 25% done')
-        elif i == int(end * 2/4) + start):
-            print(f'{time()} {current_process().name} 50% done')
-        elif i == int(end * 3/4) + start):
-            print(f'{time()} {current_process().name} 75% done')
+        if i == (int(end * 1/4) + start):
+            print(f'{time()} {current_process().name} 25% done', flush=True)
+        elif i == (int(end * 2/4) + start):
+            print(f'{time()} {current_process().name} 50% done', flush=True)
+        elif i == (int(end * 3/4) + start):
+            print(f'{time()} {current_process().name} 75% done', flush=True)
         s = array(list(binary_repr(i)), dtype=uint8)
         s = pad(
             array=s,
