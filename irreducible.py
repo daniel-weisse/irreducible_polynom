@@ -3,9 +3,10 @@ Generate a list of irreducible polynoms over GF(2^n) by testing all possibles
 """
 from pyGF2 import gf2_mul, gf2_div, gf2_add
 from numpy import array, append, binary_repr, flip, uint8, pad
+from sympy import mobius, divisors
 from datetime import datetime
 
-from multiprocessing import Pool, cpu_count, current_process
+from multiprocessing import Pool, Lock, Value, cpu_count, current_process
 
 def time():
     """
@@ -52,8 +53,16 @@ def main(n: int, n_factors: list, cpu_limit=None):
         Maximum number of cpu cores to use for the program, None to use all avaiable
 
     """
+    def init(l, t):
+        global lock
+        global total
+        lock = l
+        total = t
+    l = Lock()
+    t = Value('i', 0)
+
     cpu = cpu_limit or cpu_count()
-    pool = Pool(cpu)
+    pool = Pool(cpu, initializer=init, initargs=(l, t))
     
     args = []
 
@@ -65,32 +74,44 @@ def main(n: int, n_factors: list, cpu_limit=None):
         x = gf2_add(x, array([0, 1], dtype=uint8))
         gcd_polys.append(x)
 
+    target_number = sum([mobius(d)*pow(2, n//d) for d in divisors(n)])//n
+
     for i in range(cpu):
         args.append(
-            (int(2**(n - 1) * i/cpu), int(2**(n - 1) * (i + 1)/cpu), n, gcd_polys)
+            (
+                int(2**(n - 1) * i/cpu),
+                int(2**(n - 1) * (i + 1)/cpu),
+                n,
+                gcd_polys,
+                f'irreducibles_n-{n}.txt',
+                target_number
+            )
         )
 
-    print(f'{time()} Starting polynom generation for GF(2^{n}) using {cpu} cores')
+    print(f'{time()} Starting polynom generation for GF(2^{n}) using {cpu} cores, looking for {target_number} polynomials')
 
-    start = datetime.now()
-    irreducibles = pool.starmap(find_polys, args)
-    total_time = datetime.now() - start
-
-    lengths = [len(irreducibles[i]) for i in range(len(irreducibles))]
-    print(f'{time()} Found {sum(lengths)} irreducible polynoms over GF(2^{n}) in {total_time}')
-
-    f = open(f'irreducibles_n-{n}.txt', 'w+')
-    f.write(f'{n} {sum(lengths)}\n')
-    for i in range(len(irreducibles)):
-        for j in range(len(irreducibles[i])):
-            out = ' '.join(map(str, irreducibles[i][j]))
-            f.write(f'{out}\n')
+    f = open(f'irreducibles_n-{n}.txt', 'w')
+    f.write(f'{n} {target_number}\n')
     f.close()
 
+    start = datetime.now()
+    total_values = pool.starmap(find_polys, args)
+    total_time = datetime.now() - start
 
-def find_polys(start, end, n, gcd_polys: list):
+    print(f'{time()} Found {max(total_values)} irreducible polynoms over GF(2^{n}) in {total_time}')
+
+    #f = open(f'irreducibles_n-{n}.txt', 'w+')
+    #f.write(f'{n} {sum(lengths)}\n')
+    #for i in range(len(irreducibles)):
+    #    for j in range(len(irreducibles[i])):
+    #        out = ' '.join(map(str, irreducibles[i][j]))
+    #        f.write(f'{out}\n')
+    #f.close()
+
+
+def find_polys(start, end, n, gcd_polys: list, filename: str, target_number: int):
     """
-    finds all irreducible polynoms in a given range
+    finds all irreducible polynomials in a given range, polynomials are directly written to file
     Parameters
     ----------
     start : int
@@ -103,15 +124,14 @@ def find_polys(start, end, n, gcd_polys: list):
             all polynoms x^2^(n/m) - x with m being a prime factor of n, used to verify irreducible polynoms
 
     """
-    irreducibles = []
 
     for i in range(start, end):
-        if i == (int(end * 1/4) + start):
-            print(f'{time()} {current_process().name} 25% done', flush=True)
-        elif i == (int(end * 2/4) + start):
-            print(f'{time()} {current_process().name} 50% done', flush=True)
-        elif i == (int(end * 3/4) + start):
-            print(f'{time()} {current_process().name} 75% done', flush=True)
+        #if i == (int(end * 1/4) + start):
+        #    print(f'{time()} {current_process().name} 25% done', flush=True)
+        #elif i == (int(end * 2/4) + start):
+        #    print(f'{time()} {current_process().name} 50% done', flush=True)
+        #elif i == (int(end * 3/4) + start):
+        #    print(f'{time()} {current_process().name} 75% done', flush=True)
         s = array(list(binary_repr(i)), dtype=uint8)
         s = pad(
             array=s,
@@ -148,9 +168,35 @@ def find_polys(start, end, n, gcd_polys: list):
 
                 # if both criterias are fullfilled the polynom is irreducible
                 if irr_check:
-                    irreducibles.append(T_x)
-    
-    return irreducibles
+                    lock.acquire()
+                    total.value += 1
+                    if total.value == int(target_number * 1/10):
+                        print(f'{time()} 10% done')
+                    elif total.value == int(target_number * 2/10):
+                        print(f'{time()} 20% done')
+                    elif total.value == int(target_number * 3/10):
+                        print(f'{time()} 30% done')
+                    elif total.value == int(target_number * 4/10):
+                        print(f'{time()} 40% done')
+                    elif total.value == int(target_number * 5/10):
+                        print(f'{time()} 50% done')
+                    elif total.value == int(target_number * 6/10):
+                        print(f'{time()} 60% done')
+                    elif total.value == int(target_number * 7/10):
+                        print(f'{time()} 70% done')
+                    elif total.value == int(target_number * 8/10):
+                        print(f'{time()} 80% done')
+                    elif total.value == int(target_number * 9/10):
+                        print(f'{time()} 90% done')
+                    elif total.value == int(target_number * 19/20):
+                        print(f'{time()} 95% done')
+                    f = open(filename, 'a+')
+                    f.write(' '.join(map(str, T_x)))
+                    f.write('\n')
+                    f.close()
+                    #irreducibles.append(T_x)
+                    lock.release()
+    return total.value
 
 if __name__ == '__main__':
-    main(32, [2])
+    main(16, [2])
