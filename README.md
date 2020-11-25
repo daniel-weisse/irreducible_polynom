@@ -18,6 +18,6 @@ of degree n in GF(2^n) via repeated squaring.
 
 ----
 
-This module makes heavy use of pyGF2 (https://github.com/popcornell/pyGF2) and needs NumPy to run.
+This module makes heavy use of pyGF2 (https://github.com/popcornell/pyGF2) and needs NumPy and SymPy to run.
 
 Tested with Python 3.6.9 and NumPy 1.16.6
